@@ -1,0 +1,83 @@
+services:
+  postgres:
+    image: postgres:alpine
+    container_name: vaultix-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    env_file:
+      - ./postgres/.env
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - vaultix-network
+
+  redis:
+    image: redis:alpine
+    container_name: vaultix-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    env_file:
+      - ./redis/.env
+    command: >
+      sh -c "
+        if [ ! -f /data/users.acl ]; then
+          echo \"user default on >$$REDIS_PASSWORD ~* &* +@all\" > /data/users.acl;
+        fi;
+        exec redis-server --aclfile /data/users.acl --save 60 1 --loglevel notice
+      "
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli --no-auth-warning -a \"$$REDIS_PASSWORD\" ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    networks:
+      - vaultix-network
+
+  adminer:
+    image: adminer:latest
+    container_name: vaultix-adminer
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    env_file:
+      - ./adminer/.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - vaultix-network
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: vaultix-redis-commander
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    env_file:
+      - ./redis-commander/.env
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - vaultix-network
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  vaultix-network:
+    driver: bridge

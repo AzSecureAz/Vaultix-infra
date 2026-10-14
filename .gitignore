@@ -1,0 +1,17 @@
+# Ignore environment configuration files containing sensitive credentials
+**/.env
+.env
+
+# Explicitly track example template files
+!**/.env.example
+!.env.example
+
+# Local data, database dumps and log files
+data/
+*.rdb
+*.acl
+*.log
+
+# OS-specific files
+.DS_Store
+Thumbs.db

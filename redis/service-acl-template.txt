@@ -1,0 +1,17 @@
+# ====================================================================
+# TEMPLATE: Microservice Redis ACL User Provisioning
+# ====================================================================
+# INSTRUCTIONS:
+# Execute in Redis Commander (via the CLI console at the bottom) or redis-cli:
+#
+# 1. Create the dedicated user restricted to its key prefix:
+#    Replace:
+#      <SERVICE_USER>     -> e.g. auth_service
+#      <SERVICE_PASSWORD> -> e.g. auth_redis_pass
+#      <KEY_PREFIX>       -> e.g. auth
+#
+ACL SETUSER <SERVICE_USER> on ><SERVICE_PASSWORD> ~<KEY_PREFIX>:* &* +@all
+
+# 2. Persist the user to /data/users.acl (survives restarts):
+ACL SAVE
+# ====================================================================
