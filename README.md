@@ -33,9 +33,12 @@ infra/
 │   ├── .env                        # Redis root config
 │   ├── .env.example
 │   └── service-acl-template.txt    # Template for microservice ACL user provisioning
-└── redis-commander/
-    ├── .env                        # UI authentication credentials
-    └── .env.example
+├── redis-commander/
+│   ├── .env                        # UI authentication credentials
+│   └── .env.example
+└── geoip/
+    ├── .gitkeep                    # Keeps directory tracked
+    └── GeoLite2-City.mmdb          # MaxMind database (ignored by git, placed locally)
 ```
 
 ---
@@ -147,3 +150,18 @@ spring:
       username: auth_service
       password: auth_redis_pass
 ```
+
+---
+
+## MaxMind GeoIP Database Setup
+
+For client geolocation resolution (country, city) in the API Gateway:
+
+1. Sign in to your free account on [MaxMind](https://www.maxmind.com/en/account/login).
+2. In the left navigation, go to **GeoIP / GeoLite** -> **Download Files**.
+3. Scroll to **GeoLite City** (Format: `GeoIP2 Binary (.mmdb)`) and click **Download GZIP**.
+4. Extract the downloaded archive (`.tar.gz`) and copy the `GeoLite2-City.mmdb` file into:
+   ```
+   infra/geoip/GeoLite2-City.mmdb
+   ```
+5. `*.mmdb` files are ignored by `.gitignore` to prevent committing ~50 MB binary files to the repository.

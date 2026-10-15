@@ -6,11 +6,12 @@
 !**/.env.example
 !.env.example
 
-# Local data, database dumps and log files
+# Local data, database dumps, GeoIP files and log files
 data/
 *.rdb
 *.acl
 *.log
+*.mmdb
 
 # OS-specific files
 .DS_Store

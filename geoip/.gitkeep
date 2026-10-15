@@ -1,0 +1,1 @@
+# Keep geoip directory tracked in git while ignoring large .mmdb binary files
