@@ -28,10 +28,12 @@ infra/
 ├── postgres/
 │   ├── .env                        # PostgreSQL root config
 │   ├── .env.example
+│   ├── init-auth-db.sql            # Authorization service DB & user provisioning script
 │   └── service-db-template.sql     # SQL template for microservice DB provisioning
 ├── redis/
 │   ├── .env                        # Redis root config
 │   ├── .env.example
+│   ├── init-auth-acl.txt           # Authorization service Redis ACL provisioning script
 │   └── service-acl-template.txt    # Template for microservice ACL user provisioning
 ├── redis-commander/
 │   ├── .env                        # UI authentication credentials
@@ -92,63 +94,80 @@ docker compose -f infra/docker-compose.yml up -d
 
 ## Microservice Provisioning Guide
 
-### 1. PostgreSQL: Creating a Microservice Database & User
-To create an isolated database and user for a microservice (e.g. `authorization`):
+### 1. PostgreSQL: Authorization Service Database & User
+After starting containers (or after running `docker compose down -v`), provision the authorization database and dedicated user:
 
-1. Open **Adminer** at [http://localhost:8080](http://localhost:8080) and log in as `postgres`.
-2. Go to **SQL command** and run the template from `postgres/service-db-template.sql`:
+#### Option A: One-line CLI (Fastest)
+From the `infra/` directory:
+```bash
+docker exec -i vaultix-postgres psql -U postgres -d postgres < postgres/init-auth-db.sql
+```
+
+#### Option B: Via Adminer Web UI
+1. Open **Adminer** at [http://localhost:8080](http://localhost:8080) and log in as `postgres` (password: `postgres`).
+2. Go to **SQL command** and execute the contents of `postgres/init-auth-db.sql`:
 
 ```sql
--- 1. Create the dedicated user
-CREATE USER auth_service_user WITH ENCRYPTED PASSWORD 'auth_secure_pass';
+-- 1. Create dedicated user
+CREATE USER auth_user WITH ENCRYPTED PASSWORD 'auth_password';
 
--- 2. Revoke connection rights from PUBLIC so non-superusers cannot connect to 'postgres'
+-- 2. Revoke default connect on postgres DB
 REVOKE CONNECT ON DATABASE postgres FROM PUBLIC;
 
--- 3. Create the dedicated database and assign ownership
-CREATE DATABASE vaultix_auth_db OWNER auth_service_user;
+-- 3. Create database owned by service user
+CREATE DATABASE vaultix_auth_db OWNER auth_user;
 
--- 4. Revoke public access (prevents other microservice users from accessing it)
+-- 4. Secure the new database from public access
 REVOKE ALL ON DATABASE vaultix_auth_db FROM PUBLIC;
-
--- 5. Grant full privileges to the service user
-GRANT ALL PRIVILEGES ON DATABASE vaultix_auth_db TO auth_service_user;
+GRANT ALL PRIVILEGES ON DATABASE vaultix_auth_db TO auth_user;
 ```
+
+*(For new microservices, use the general template in `postgres/service-db-template.sql`)*.
 
 ---
 
-### 2. Redis: Creating a Microservice ACL User
-To create a dedicated Redis user restricted strictly to its own key prefix (e.g. `auth:*`):
+### 2. Redis: Authorization Service ACL User
+Provision the isolated Redis user restricted to the `auth:*` key pattern:
 
-1. Open **Redis Commander** at [http://localhost:8081](http://localhost:8081).
-2. Open the **Console** at the bottom and run one line at a time:
+#### Option A: One-line CLI (Fastest)
+From the `infra/` directory:
+```bash
+docker exec -i vaultix-redis redis-cli -a redis ACL SETUSER auth_user on >auth_password ~auth:* &* +@all
+docker exec -i vaultix-redis redis-cli -a redis ACL SAVE
+```
+
+#### Option B: Via Redis Commander Web UI
+1. Open **Redis Commander** at [http://localhost:8081](http://localhost:8081) (Username: `admin`, Password: `admin`).
+2. Open the **Console** at the bottom and run each command from `redis/init-auth-acl.txt`:
 
 ```text
-ACL SETUSER auth_service on >auth_redis_pass ~auth:* &* +@all
+ACL SETUSER auth_user on >auth_password ~auth:* &* +@all
 ACL SAVE
 ```
 
 > **Note:** Running `ACL SAVE` writes the user to `/data/users.acl`, ensuring it persists across container restarts on the `redis_data` volume.
 
+*(For new microservices, use the general template in `redis/service-acl-template.txt`)*.
+
 ---
 
 ## Spring Boot Connection Configuration
 
-In your microservice's `src/main/resources/application.yaml`:
+In `authorization/src/main/resources/application.yaml`:
 
 ```yaml
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/vaultix_auth_db
-    username: auth_service_user
-    password: auth_secure_pass
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/vaultix_auth_db}
+    username: ${SPRING_DATASOURCE_USERNAME:auth_user}
+    password: ${SPRING_DATASOURCE_PASSWORD:auth_password}
     driver-class-name: org.postgresql.Driver
   data:
     redis:
-      host: localhost
-      port: 6379
-      username: auth_service
-      password: auth_redis_pass
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+      username: ${SPRING_DATA_REDIS_USERNAME:auth_user}
+      password: ${SPRING_DATA_REDIS_PASSWORD:auth_password}
 ```
 
 ---
