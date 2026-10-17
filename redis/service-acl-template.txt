@@ -7,7 +7,11 @@
 # 1. Create the dedicated user for a Resource Server microservice:
 #    - Read-Write access on own keys: ~<KEY_PREFIX>:*
 #    - Read-Only access on auth blacklist: %R~auth:blacklist:*
+#    - Read-Only access on auth disabled permissions: %R~auth:permission:disabled
+#    - Read-Only access on auth disabled roles: %R~auth:role:disabled
 #    - Pub/Sub subscription on signing key revocation: &auth:signing-key:revocation
+#    - Pub/Sub subscription on permission revocation: &auth:permission:revocation
+#    - Pub/Sub subscription on role revocation: &auth:role:revocation
 #    - Pub/Sub access on own channels: &<KEY_PREFIX>:*
 #
 #    Replace:
@@ -15,7 +19,7 @@
 #      <SERVICE_PASSWORD> -> e.g. demo_password
 #      <KEY_PREFIX>       -> e.g. demo
 #
-ACL SETUSER <SERVICE_USER> on ><SERVICE_PASSWORD> ~<KEY_PREFIX>:* %R~auth:blacklist:* &auth:signing-key:revocation &<KEY_PREFIX>:* +@all
+ACL SETUSER <SERVICE_USER> on ><SERVICE_PASSWORD> ~<KEY_PREFIX>:* %R~auth:blacklist:* %R~auth:permission:disabled %R~auth:role:disabled &auth:signing-key:revocation &auth:permission:revocation &auth:role:revocation &<KEY_PREFIX>:* +@all
 
 # 2. Persist the user to /data/users.acl (survives restarts):
 ACL SAVE
