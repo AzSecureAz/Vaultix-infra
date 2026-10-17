@@ -4,8 +4,10 @@
 # INSTRUCTIONS:
 # Execute in Redis Commander (via the CLI console at the bottom) or redis-cli:
 #
-# 1. Create dedicated user restricted to 'auth:*' keys and Pub/Sub channels:
-ACL SETUSER auth_user on >auth_password ~auth:* &* +@all
+# 1. Create dedicated user:
+#    - Read-Write access on own keys: ~auth:*
+#    - Pub/Sub access on own channels: &auth:*
+ACL SETUSER auth_user on >auth_password ~auth:* &auth:* +@all
 
 # 2. Persist the user to /data/users.acl (survives restarts):
 ACL SAVE

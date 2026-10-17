@@ -4,13 +4,18 @@
 # INSTRUCTIONS:
 # Execute in Redis Commander (via the CLI console at the bottom) or redis-cli:
 #
-# 1. Create the dedicated user restricted to its key prefix:
-#    Replace:
-#      <SERVICE_USER>     -> e.g. auth_service
-#      <SERVICE_PASSWORD> -> e.g. auth_redis_pass
-#      <KEY_PREFIX>       -> e.g. auth
+# 1. Create the dedicated user for a Resource Server microservice:
+#    - Read-Write access on own keys: ~<KEY_PREFIX>:*
+#    - Read-Only access on auth blacklist: %R~auth:blacklist:*
+#    - Pub/Sub subscription on signing key revocation: &auth:signing-key:revocation
+#    - Pub/Sub access on own channels: &<KEY_PREFIX>:*
 #
-ACL SETUSER <SERVICE_USER> on ><SERVICE_PASSWORD> ~<KEY_PREFIX>:* &* +@all
+#    Replace:
+#      <SERVICE_USER>     -> e.g. demo_user
+#      <SERVICE_PASSWORD> -> e.g. demo_password
+#      <KEY_PREFIX>       -> e.g. demo
+#
+ACL SETUSER <SERVICE_USER> on ><SERVICE_PASSWORD> ~<KEY_PREFIX>:* %R~auth:blacklist:* &auth:signing-key:revocation &<KEY_PREFIX>:* +@all
 
 # 2. Persist the user to /data/users.acl (survives restarts):
 ACL SAVE

@@ -1,0 +1,16 @@
+# ====================================================================
+# Provisioning script for Demo Service Redis ACL User
+# ====================================================================
+# INSTRUCTIONS:
+# Execute in Redis Commander (via the CLI console at the bottom) or redis-cli:
+#
+# 1. Create dedicated user:
+#    - Read-Write access on own keys: ~demo:*
+#    - Read-Only access on auth blacklist: %R~auth:blacklist:*
+#    - Pub/Sub subscription on signing key revocation: &auth:signing-key:revocation
+#    - Pub/Sub access on own channels: &demo:*
+ACL SETUSER demo_user on >demo_password ~demo:* %R~auth:blacklist:* &auth:signing-key:revocation &demo:* +@all
+
+# 2. Persist the user to /data/users.acl (survives restarts):
+ACL SAVE
+# ====================================================================
