@@ -22,4 +22,3 @@ REVOKE ALL ON DATABASE <SERVICE_DB> FROM PUBLIC;
 
 -- 5. Grant complete privileges on the database to the service user
 GRANT ALL PRIVILEGES ON DATABASE <SERVICE_DB> TO <SERVICE_USER>;
-

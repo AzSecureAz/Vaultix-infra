@@ -15,4 +15,3 @@ CREATE DATABASE vaultix_auth_db OWNER auth_user;
 -- 4. Secure the new database from public access
 REVOKE ALL ON DATABASE vaultix_auth_db FROM PUBLIC;
 GRANT ALL PRIVILEGES ON DATABASE vaultix_auth_db TO auth_user;
-
