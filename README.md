@@ -34,6 +34,7 @@ infra/
 │   ├── .env                        # Redis root config
 │   ├── .env.example
 │   ├── init-auth-acl.txt           # Authorization service Redis ACL provisioning script
+│   ├── init-demo-acl.txt           # Demo service Redis ACL provisioning script
 │   └── service-acl-template.txt    # Template for microservice ACL user provisioning
 ├── redis-commander/
 │   ├── .env                        # UI authentication credentials
@@ -147,13 +148,33 @@ ACL SAVE
 
 > **Note:** Running `ACL SAVE` writes the user to `/data/users.acl`, ensuring it persists across container restarts on the `redis_data` volume.
 
+---
+
+### 3. Redis: Demo Service ACL User (`demo_user`)
+Provision the isolated Redis user for the `demo` service with read-only access to auth revocation stores and pub/sub channels:
+
+#### Option A: One-line CLI (Fastest)
+From the `infra/` directory:
+```bash
+docker exec -i vaultix-redis redis-cli -a redis ACL SETUSER demo_user on >demo_password ~demo:* %R~auth:blacklist:* %R~auth:permission:disabled %R~auth:role:disabled &auth:signing-key:revocation &auth:permission:revocation &auth:role:revocation &demo:* +@all
+docker exec -i vaultix-redis redis-cli -a redis ACL SAVE
+```
+
+#### Option B: Via Redis Commander Web UI
+1. Open **Redis Commander** at [http://localhost:8081](http://localhost:8081).
+2. Open the **Console** and execute the contents of `redis/init-demo-acl.txt`:
+```text
+ACL SETUSER demo_user on >demo_password ~demo:* %R~auth:blacklist:* %R~auth:permission:disabled %R~auth:role:disabled &auth:signing-key:revocation &auth:permission:revocation &auth:role:revocation &demo:* +@all
+ACL SAVE
+```
+
 *(For new microservices, use the general template in `redis/service-acl-template.txt`)*.
 
 ---
 
 ## Spring Boot Connection Configuration
 
-In `authorization/src/main/resources/application.yaml`:
+### Authorization Service (`authorization/src/main/resources/application.yaml`):
 
 ```yaml
 spring:
@@ -168,6 +189,18 @@ spring:
       port: ${SPRING_DATA_REDIS_PORT:6379}
       username: ${SPRING_DATA_REDIS_USERNAME:auth_user}
       password: ${SPRING_DATA_REDIS_PASSWORD:auth_password}
+```
+
+### Demo Service (`demo/src/main/resources/application.yaml`):
+
+```yaml
+spring:
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+      username: ${SPRING_DATA_REDIS_USERNAME:demo_user}
+      password: ${SPRING_DATA_REDIS_PASSWORD:demo_password}
 ```
 
 ---
