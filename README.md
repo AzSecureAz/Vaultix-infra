@@ -10,8 +10,11 @@ Local development environment for the Vaultix microservices platform, powered by
 | :--- | :--- | :--- | :--- | :--- |
 | **PostgreSQL** | `vaultix-postgres` | `5432` | Relational database (Alpine) | [localhost:8080](http://localhost:8080) (via Adminer) |
 | **Redis** | `vaultix-redis` | `6379` | In-memory key-value cache/store (Alpine) | [localhost:8081](http://localhost:8081) (via Redis Commander) |
+| **RabbitMQ** | `vaultix-rabbitmq` | `5672`, `15672` | Message broker with Management UI | [http://localhost:15672](http://localhost:15672) |
+| **Mailpit** | `vaultix-mailpit` | `1025`, `8025` | Local SMTP server & testing Web UI | [http://localhost:8025](http://localhost:8025) |
 | **Adminer** | `vaultix-adminer` | `8080` | Lightweight PostgreSQL web management GUI | [http://localhost:8080](http://localhost:8080) |
 | **Redis Commander** | `vaultix-redis-commander` | `8081` | Web management GUI for Redis | [http://localhost:8081](http://localhost:8081) |
+
 
 ---
 
@@ -39,6 +42,15 @@ infra/
 ├── redis-commander/
 │   ├── .env                        # UI authentication credentials
 │   └── .env.example
+├── rabbitmq/
+│   ├── .env                        # RabbitMQ root credentials
+│   ├── .env.example
+│   ├── definitions.json            # Declarative users, vhosts, permissions
+│   ├── init-auth-rabbitmq.txt      # Provisioning instructions
+│   └── init-notification-rabbitmq.txt
+├── mailpit/
+│   ├── .env                        # Local SMTP and Web UI config
+│   └── .env.example
 └── geoip/
     ├── .gitkeep                    # Keeps directory tracked
     └── GeoLite2-City.mmdb          # MaxMind database (ignored by git, placed locally)
@@ -54,6 +66,9 @@ Before starting for the first time, ensure each service has its `.env` file copi
 - `postgres/.env`
 - `redis/.env`
 - `redis-commander/.env`
+- `rabbitmq/.env`
+- `mailpit/.env`
+
 
 ### 2. Starting the Services
 From the `infra/` directory:

@@ -92,6 +92,20 @@ services:
     networks:
       - vaultix-network
 
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: vaultix-mailpit
+    restart: unless-stopped
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    env_file:
+      - ./mailpit/.env
+    volumes:
+      - mailpit_data:/data
+    networks:
+      - vaultix-network
+
 volumes:
   postgres_data:
     driver: local
@@ -99,7 +113,10 @@ volumes:
     driver: local
   rabbitmq_data:
     driver: local
+  mailpit_data:
+    driver: local
 
 networks:
   vaultix-network:
     driver: bridge
+
