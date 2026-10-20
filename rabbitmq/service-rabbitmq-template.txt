@@ -1,0 +1,35 @@
+# ====================================================================
+# TEMPLATE: Microservice RabbitMQ User Provisioning
+# ====================================================================
+# INSTRUCTIONS:
+# Execute via terminal or in RabbitMQ Management UI (http://localhost:15672):
+#
+# Replace:
+#   <SERVICE_USER>     -> e.g. payment_user
+#   <SERVICE_PASSWORD> -> e.g. payment_password
+#   <PREFIX>           -> e.g. payment
+#
+# Commands:
+# 1. Create dedicated user:
+#    docker exec -it vaultix-rabbitmq rabbitmqctl add_user <SERVICE_USER> <SERVICE_PASSWORD>
+#
+# 2. Assign permissions on "/" vhost:
+#    - Configure: ^<PREFIX>\..*  (can only declare own exchanges/queues)
+#    - Write:     ^<PREFIX>\..*  (can only publish to own exchanges)
+#    - Read:      ^$             (producer only: cannot read/snoop other queues)
+#    docker exec -it vaultix-rabbitmq rabbitmqctl set_permissions -p / <SERVICE_USER> "^<PREFIX>\..*" "^<PREFIX>\..*" "^$"
+#
+# 3. Grant Web UI access:
+#    docker exec -it vaultix-rabbitmq rabbitmqctl set_user_tags <SERVICE_USER> management
+#
+# Or in RabbitMQ Management Web UI (http://localhost:15672):
+#   1. Log in as 'admin'
+#   2. Go to "Admin" tab -> "Add a user":
+#      - Username: <SERVICE_USER>
+#      - Password: <SERVICE_PASSWORD>
+#      - Tags: management
+#   3. Click on "<SERVICE_USER>" -> "Set permission" on Virtual Host "/":
+#      - Configure regexp: ^<PREFIX>\..*
+#      - Write regexp:     ^<PREFIX>\..*
+#      - Read regexp:      ^$
+# ====================================================================

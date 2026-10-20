@@ -1,0 +1,25 @@
+# ====================================================================
+# Provisioning script for Authorization Service RabbitMQ User
+# ====================================================================
+# INSTRUCTIONS:
+# Execute via terminal:
+#   docker exec -it vaultix-rabbitmq rabbitmqctl add_user auth_user auth_password
+#   docker exec -it vaultix-rabbitmq rabbitmqctl set_permissions -p / auth_user "^auth\..*" "^auth\..*" "^$"
+#   docker exec -it vaultix-rabbitmq rabbitmqctl set_user_tags auth_user management
+#
+# Permissions Breakdown:
+#   - Configure: ^auth\..* (Can declare auth exchanges/queues)
+#   - Write:     ^auth\..* (Can publish to auth exchanges)
+#   - Read:      ^$        (Cannot read/snoop any queues)
+#
+# Or in RabbitMQ Management Web UI (http://localhost:15672):
+#   1. Log in as 'admin'
+#   2. Go to "Admin" tab -> "Add a user":
+#      - Username: auth_user
+#      - Password: auth_password
+#      - Tags: management
+#   3. Click on "auth_user" -> "Set permission" on Virtual Host "/":
+#      - Configure regexp: ^auth\..*
+#      - Write regexp:     ^auth\..*
+#      - Read regexp:      ^$
+# ====================================================================

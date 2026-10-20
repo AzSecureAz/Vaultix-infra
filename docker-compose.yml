@@ -72,10 +72,32 @@ services:
     networks:
       - vaultix-network
 
+  rabbitmq:
+    image: rabbitmq:management-alpine
+    container_name: vaultix-rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    env_file:
+      - ./rabbitmq/.env
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - vaultix-network
+
 volumes:
   postgres_data:
     driver: local
   redis_data:
+    driver: local
+  rabbitmq_data:
     driver: local
 
 networks:

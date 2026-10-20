@@ -1,0 +1,39 @@
+{
+  "vhosts": [
+    {
+      "name": "/"
+    }
+  ],
+  "users": [
+    {
+      "name": "auth_user",
+      "password": "auth_password",
+      "tags": [
+        "management"
+      ]
+    },
+    {
+      "name": "notification_user",
+      "password": "notification_password",
+      "tags": [
+        "management"
+      ]
+    }
+  ],
+  "permissions": [
+    {
+      "user": "auth_user",
+      "vhost": "/",
+      "configure": "^auth\\..*",
+      "write": "^auth\\..*",
+      "read": "^$"
+    },
+    {
+      "user": "notification_user",
+      "vhost": "/",
+      "configure": "^notification\\..*",
+      "write": "^notification\\..*",
+      "read": ".*"
+    }
+  ]
+}
