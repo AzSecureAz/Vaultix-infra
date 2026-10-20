@@ -187,6 +187,23 @@ ACL SAVE
 
 ---
 
+### 4. RabbitMQ: Authorization & Notification Provisioning
+Provision the dedicated users, permissions, topic exchange (`auth.exchange`), queue (`notification.auth`), and binding:
+
+#### Option A: One-Click Declarative Import via Web UI (Fastest)
+1. Open the **RabbitMQ Management UI** at [http://localhost:15672](http://localhost:15672) and log in with admin credentials (`admin` / `admin_password`).
+2. On the **Overview** page, scroll down to the **Import definitions** section.
+3. Click **Browse...**, select `infra/rabbitmq/definitions.json`, and click **Upload definition**.
+4. All users (`auth_user`, `notification_user`), permissions, exchanges (`auth.exchange`), queues (`notification.auth`), and bindings are instantly provisioned!
+
+#### Option B: Step-by-Step UI or CLI
+- **Authorization Service**: Run commands or follow UI steps in [`infra/rabbitmq/init-auth-rabbitmq.txt`](file:///c:/Users/vimal/Documents/Projects/Vaultix/infra/rabbitmq/init-auth-rabbitmq.txt) to create `auth_user` and `auth.exchange`.
+- **Notification Service**: Run commands or follow UI steps in [`infra/rabbitmq/init-notification-rabbitmq.txt`](file:///c:/Users/vimal/Documents/Projects/Vaultix/infra/rabbitmq/init-notification-rabbitmq.txt) to create `notification_user`, `notification.auth` queue, and bind to `auth.exchange`.
+
+*(For new microservices, use the general template in `rabbitmq/service-rabbitmq-template.txt`)*.
+
+---
+
 ## Spring Boot Connection Configuration
 
 ### Authorization Service (`authorization/src/main/resources/application.yaml`):
@@ -204,6 +221,40 @@ spring:
       port: ${SPRING_DATA_REDIS_PORT:6379}
       username: ${SPRING_DATA_REDIS_USERNAME:auth_user}
       password: ${SPRING_DATA_REDIS_PASSWORD:auth_password}
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:localhost}
+    port: ${SPRING_RABBITMQ_PORT:5672}
+    username: ${SPRING_RABBITMQ_USERNAME:auth_user}
+    password: ${SPRING_RABBITMQ_PASSWORD:auth_password}
+    virtual-host: ${SPRING_RABBITMQ_VIRTUAL_HOST:/}
+
+vaultix:
+  rabbitmq:
+    exchange: ${VAULTIX_RABBITMQ_EXCHANGE:auth.exchange}
+    routing-key:
+      notification:
+        password-reset: ${VAULTIX_RABBITMQ_ROUTING_KEY_NOTIFICATION_PASSWORD_RESET:auth.notification.password-reset}
+```
+
+### Notification Service (`notification/src/main/resources/application.yaml`):
+
+```yaml
+spring:
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:localhost}
+    port: ${SPRING_RABBITMQ_PORT:5672}
+    username: ${SPRING_RABBITMQ_USERNAME:notification_user}
+    password: ${SPRING_RABBITMQ_PASSWORD:notification_password}
+    virtual-host: ${SPRING_RABBITMQ_VIRTUAL_HOST:/}
+  mail:
+    host: ${SPRING_MAIL_HOST:localhost}
+    port: ${SPRING_MAIL_PORT:1025}
+
+vaultix:
+  rabbitmq:
+    auth-exchange: ${VAULTIX_RABBITMQ_AUTH_EXCHANGE:auth.exchange}
+    auth-queue: ${VAULTIX_RABBITMQ_AUTH_QUEUE:notification.auth}
+    auth-routing-key: ${VAULTIX_RABBITMQ_AUTH_ROUTING_KEY:auth.notification.*}
 ```
 
 ### Demo Service (`demo/src/main/resources/application.yaml`):

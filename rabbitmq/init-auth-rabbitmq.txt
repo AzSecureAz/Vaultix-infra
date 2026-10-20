@@ -1,25 +1,37 @@
 # ====================================================================
-# Provisioning script for Authorization Service RabbitMQ User
+# Provisioning script for Authorization Service RabbitMQ User & Exchange
 # ====================================================================
 # INSTRUCTIONS:
-# Execute via terminal:
-#   docker exec -it vaultix-rabbitmq rabbitmqctl add_user auth_user auth_password
-#   docker exec -it vaultix-rabbitmq rabbitmqctl set_permissions -p / auth_user "^auth\..*" "^auth\..*" "^$"
-#   docker exec -it vaultix-rabbitmq rabbitmqctl set_user_tags auth_user management
+# Execute via terminal or in RabbitMQ Management Web UI (http://localhost:15672):
 #
-# Permissions Breakdown:
-#   - Configure: ^auth\..* (Can declare auth exchanges/queues)
-#   - Write:     ^auth\..* (Can publish to auth exchanges)
-#   - Read:      ^$        (Cannot read/snoop any queues)
+# --- OPTION A: Via Terminal (CLI) ---
+# 1. Create dedicated user:
+#    docker exec -it vaultix-rabbitmq rabbitmqctl add_user auth_user auth_password
 #
-# Or in RabbitMQ Management Web UI (http://localhost:15672):
-#   1. Log in as 'admin'
-#   2. Go to "Admin" tab -> "Add a user":
-#      - Username: auth_user
-#      - Password: auth_password
-#      - Tags: management
-#   3. Click on "auth_user" -> "Set permission" on Virtual Host "/":
-#      - Configure regexp: ^auth\..*
-#      - Write regexp:     ^auth\..*
-#      - Read regexp:      ^$
+# 2. Assign permissions on "/" vhost:
+#    - Configure: ^auth\..* (Can declare/manage auth exchanges/queues)
+#    - Write:     ^auth\..* (Can publish to auth exchanges)
+#    - Read:      ^$        (Producer only: cannot read/snoop queues)
+#    docker exec -it vaultix-rabbitmq rabbitmqctl set_permissions -p / auth_user "^auth\..*" "^auth\..*" "^$"
+#
+# 3. Grant Web UI access:
+#    docker exec -it vaultix-rabbitmq rabbitmqctl set_user_tags auth_user management
+#
+# 4. Declare topic exchange:
+#    docker exec -it vaultix-rabbitmq rabbitmqadmin -u admin -p admin_password declare exchange name=auth.exchange type=topic durable=true
+#
+# --- OPTION B: Via RabbitMQ Management Web UI (http://localhost:15672) ---
+# 1. Log in as 'admin' (password: admin_password)
+# 2. Go to "Admin" tab -> "Add a user":
+#    - Username: auth_user
+#    - Password: auth_password
+#    - Tags: management
+# 3. Click on "auth_user" -> "Set permission" on Virtual Host "/":
+#    - Configure regexp: ^auth\..*
+#    - Write regexp:     ^auth\..*
+#    - Read regexp:      ^$
+# 4. Go to "Exchanges" tab -> "Add a new exchange":
+#    - Name: auth.exchange
+#    - Type: topic
+#    - Durability: Durable
 # ====================================================================

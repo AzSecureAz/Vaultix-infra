@@ -1,5 +1,5 @@
 # ====================================================================
-# TEMPLATE: Microservice RabbitMQ User Provisioning
+# TEMPLATE: Microservice RabbitMQ Provisioning (User, Exchange & Queue)
 # ====================================================================
 # INSTRUCTIONS:
 # Execute via terminal or in RabbitMQ Management UI (http://localhost:15672):
@@ -9,12 +9,12 @@
 #   <SERVICE_PASSWORD> -> e.g. payment_password
 #   <PREFIX>           -> e.g. payment
 #
-# Commands:
+# --- OPTION A: Via Terminal (CLI) ---
 # 1. Create dedicated user:
 #    docker exec -it vaultix-rabbitmq rabbitmqctl add_user <SERVICE_USER> <SERVICE_PASSWORD>
 #
 # 2. Assign permissions on "/" vhost:
-#    - Configure: ^<PREFIX>\..*  (can only declare own exchanges/queues)
+#    - Configure: ^<PREFIX>\..*  (can only declare/manage own exchanges/queues)
 #    - Write:     ^<PREFIX>\..*  (can only publish to own exchanges)
 #    - Read:      ^$             (producer only: cannot read/snoop other queues)
 #    docker exec -it vaultix-rabbitmq rabbitmqctl set_permissions -p / <SERVICE_USER> "^<PREFIX>\..*" "^<PREFIX>\..*" "^$"
@@ -22,14 +22,26 @@
 # 3. Grant Web UI access:
 #    docker exec -it vaultix-rabbitmq rabbitmqctl set_user_tags <SERVICE_USER> management
 #
-# Or in RabbitMQ Management Web UI (http://localhost:15672):
-#   1. Log in as 'admin'
-#   2. Go to "Admin" tab -> "Add a user":
-#      - Username: <SERVICE_USER>
-#      - Password: <SERVICE_PASSWORD>
-#      - Tags: management
-#   3. Click on "<SERVICE_USER>" -> "Set permission" on Virtual Host "/":
-#      - Configure regexp: ^<PREFIX>\..*
-#      - Write regexp:     ^<PREFIX>\..*
-#      - Read regexp:      ^$
+# 4. Declare topic exchange:
+#    docker exec -it vaultix-rabbitmq rabbitmqadmin -u admin -p admin_password declare exchange name=<PREFIX>.exchange type=topic durable=true
+#
+# 5. (If consumer) Declare queue & bind:
+#    docker exec -it vaultix-rabbitmq rabbitmqadmin -u admin -p admin_password declare queue name=<SERVICE>.queue durable=true
+#    docker exec -it vaultix-rabbitmq rabbitmqadmin -u admin -p admin_password declare binding source=<SOURCE_EXCHANGE> destination=<SERVICE>.queue routing_key="<ROUTING_KEY>"
+#
+# --- OPTION B: Via RabbitMQ Management Web UI (http://localhost:15672) ---
+# 1. Log in as 'admin' (password: admin_password)
+# 2. Go to "Admin" tab -> "Add a user":
+#    - Username: <SERVICE_USER>
+#    - Password: <SERVICE_PASSWORD>
+#    - Tags: management
+# 3. Click on "<SERVICE_USER>" -> "Set permission" on Virtual Host "/":
+#    - Configure regexp: ^<PREFIX>\..*
+#    - Write regexp:     ^<PREFIX>\..*
+#    - Read regexp:      ^$
+# 4. Go to "Exchanges" tab -> "Add a new exchange":
+#    - Name: <PREFIX>.exchange
+#    - Type: topic
+#    - Durability: Durable
+# 5. (If consumer) Go to "Queues" tab -> "Add a new queue" -> Click queue -> Bind to exchange.
 # ====================================================================

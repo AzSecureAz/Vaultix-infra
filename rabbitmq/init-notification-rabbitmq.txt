@@ -1,25 +1,42 @@
 # ====================================================================
-# Provisioning script for Notification Service RabbitMQ User
+# Provisioning script for Notification Service RabbitMQ User, Queue & Binding
 # ====================================================================
 # INSTRUCTIONS:
-# Execute via terminal:
-#   docker exec -it vaultix-rabbitmq rabbitmqctl add_user notification_user notification_password
-#   docker exec -it vaultix-rabbitmq rabbitmqctl set_permissions -p / notification_user "^notification\..*" "^notification\..*" ".*"
-#   docker exec -it vaultix-rabbitmq rabbitmqctl set_user_tags notification_user management
+# Execute via terminal or in RabbitMQ Management Web UI (http://localhost:15672):
 #
-# Permissions Breakdown:
-#   - Configure: ^notification\..* (Can create notification queues, bindings, and DLQs)
-#   - Write:     ^notification\..* (Can publish to its own retry / DLQ exchanges)
-#   - Read:      .*                (Can consume messages from ALL queues across all services)
+# --- OPTION A: Via Terminal (CLI) ---
+# 1. Create dedicated user:
+#    docker exec -it vaultix-rabbitmq rabbitmqctl add_user notification_user notification_password
 #
-# Or in RabbitMQ Management Web UI (http://localhost:15672):
-#   1. Log in as 'admin'
-#   2. Go to "Admin" tab -> "Add a user":
-#      - Username: notification_user
-#      - Password: notification_password
-#      - Tags: management
-#   3. Click on "notification_user" -> "Set permission" on Virtual Host "/":
-#      - Configure regexp: ^notification\..*
-#      - Write regexp:     ^notification\..*
-#      - Read regexp:      .*
+# 2. Assign permissions on "/" vhost:
+#    - Configure: ^notification\..* (Can create notification queues, bindings, and DLQs)
+#    - Write:     ^notification\..* (Can publish to its own retry / DLQ exchanges)
+#    - Read:      .*                (Can consume messages from all queues)
+#    docker exec -it vaultix-rabbitmq rabbitmqctl set_permissions -p / notification_user "^notification\..*" "^notification\..*" ".*"
+#
+# 3. Grant Web UI access:
+#    docker exec -it vaultix-rabbitmq rabbitmqctl set_user_tags notification_user management
+#
+# 4. Declare queue:
+#    docker exec -it vaultix-rabbitmq rabbitmqadmin -u admin -p admin_password declare queue name=notification.auth durable=true
+#
+# 5. Bind queue to auth exchange:
+#    docker exec -it vaultix-rabbitmq rabbitmqadmin -u admin -p admin_password declare binding source=auth.exchange destination=notification.auth routing_key="auth.notification.*"
+#
+# --- OPTION B: Via RabbitMQ Management Web UI (http://localhost:15672) ---
+# 1. Log in as 'admin' (password: admin_password)
+# 2. Go to "Admin" tab -> "Add a user":
+#    - Username: notification_user
+#    - Password: notification_password
+#    - Tags: management
+# 3. Click on "notification_user" -> "Set permission" on Virtual Host "/":
+#    - Configure regexp: ^notification\..*
+#    - Write regexp:     ^notification\..*
+#    - Read regexp:      .*
+# 4. Go to "Queues" tab -> "Add a new queue":
+#    - Name: notification.auth
+#    - Durability: Durable
+# 5. Click on "notification.auth" -> scroll down to "Bindings" -> "Add binding to this queue":
+#    - From exchange: auth.exchange
+#    - Routing key: auth.notification.*
 # ====================================================================

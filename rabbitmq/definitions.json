@@ -35,5 +35,35 @@
       "write": "^notification\\..*",
       "read": ".*"
     }
+  ],
+  "exchanges": [
+    {
+      "name": "auth.exchange",
+      "vhost": "/",
+      "type": "topic",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    }
+  ],
+  "queues": [
+    {
+      "name": "notification.auth",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    }
+  ],
+  "bindings": [
+    {
+      "source": "auth.exchange",
+      "vhost": "/",
+      "destination": "notification.auth",
+      "destination_type": "queue",
+      "routing_key": "auth.notification.*",
+      "arguments": {}
+    }
   ]
 }
