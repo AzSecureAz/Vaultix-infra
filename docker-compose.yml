@@ -75,6 +75,7 @@ services:
   rabbitmq:
     image: rabbitmq:management-alpine
     container_name: vaultix-rabbitmq
+    hostname: vaultix-rabbitmq
     restart: unless-stopped
     ports:
       - "5672:5672"
