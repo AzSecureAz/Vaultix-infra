@@ -47,7 +47,8 @@ infra/
 │   ├── .env.example
 │   ├── definitions.json            # Declarative users, vhosts, permissions
 │   ├── init-auth-rabbitmq.txt      # Provisioning instructions
-│   └── init-notification-rabbitmq.txt
+│   ├── init-notification-rabbitmq.txt
+│   └── service-rabbitmq-template.txt# Template for microservice queue/exchange provisioning
 ├── mailpit/
 │   ├── .env                        # Local SMTP and Web UI config
 │   └── .env.example
