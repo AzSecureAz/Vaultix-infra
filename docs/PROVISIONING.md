@@ -69,7 +69,7 @@ Provision the isolated Redis user for the `demo` service with read-only access t
 #### Option A: One-line CLI (Fastest)
 From the `infra/` directory:
 ```bash
-docker exec -i vaultix-redis redis-cli -a redis ACL SETUSER demo_user on >demo_password ~demo:* %R~auth:blacklist:* %R~auth:permission:disabled %R~auth:role:disabled &auth:signing-key:revocation &auth:permission:revocation &auth:role:revocation &demo:* +@all
+docker exec -i vaultix-redis redis-cli -a redis ACL SETUSER demo_user on >demo_password ~demo:* %R~auth:blacklist:* %R~auth:sudo:session:* %R~auth:permission:disabled %R~auth:role:disabled &auth:signing-key:revocation &auth:permission:revocation &auth:role:revocation &demo:* +@all
 docker exec -i vaultix-redis redis-cli -a redis ACL SAVE
 ```
 
@@ -77,7 +77,7 @@ docker exec -i vaultix-redis redis-cli -a redis ACL SAVE
 1. Open **Redis Commander** at [http://localhost:8081](http://localhost:8081).
 2. Open the **Console** and execute the contents of `redis/init-demo-acl.txt`:
 ```text
-ACL SETUSER demo_user on >demo_password ~demo:* %R~auth:blacklist:* %R~auth:permission:disabled %R~auth:role:disabled &auth:signing-key:revocation &auth:permission:revocation &auth:role:revocation &demo:* +@all
+ACL SETUSER demo_user on >demo_password ~demo:* %R~auth:blacklist:* %R~auth:sudo:session:* %R~auth:permission:disabled %R~auth:role:disabled &auth:signing-key:revocation &auth:permission:revocation &auth:role:revocation &demo:* +@all
 ACL SAVE
 ```
 
